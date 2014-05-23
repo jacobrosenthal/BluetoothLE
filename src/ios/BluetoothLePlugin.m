@@ -37,7 +37,6 @@ NSString *const statusDiscoveredCharacteristics = @"discoveredCharacteristics";
 NSString *const statusDiscoveredDescriptors = @"discoveredDescriptors";
 NSString *const statusRead = @"read";
 NSString *const statusSubscribed = @"subscribed";
-NSString *const statusSubscribedResult = @"subscribedResult";
 NSString *const statusUnsubscribed = @"unsubscribed";
 NSString *const statusWritten = @"written";
 NSString *const statusReadDescriptor = @"readDescriptor";
@@ -115,7 +114,7 @@ NSString *const logWriteDescriptorValueNotFound = @"Write descriptor value not f
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         return;
     }
-    
+
     centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:@{ CBCentralManagerOptionRestoreIdentifierKey:@"bluetoothleplugin" }];
     initCallback = command.callbackId;
 }
@@ -1106,24 +1105,12 @@ NSString *const logWriteDescriptorValueNotFound = @"Write descriptor value not f
     
     [self addValue:characteristic.value toDictionary:returnObj];
     
-    if (characteristic.isNotifying)
-    {
-        [returnObj setValue:statusSubscribedResult forKey:keyStatus];
-        
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnObj];
-        [pluginResult setKeepCallbackAsBool:true];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:operationCallback];
-    }
-    else
-    {
-        [returnObj setValue:statusRead forKey:keyStatus];
-        
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnObj];
-        [pluginResult setKeepCallbackAsBool:false];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:operationCallback];
-        
-        operationCallback = nil;
-    }
+    [returnObj setValue:statusRead forKey:keyStatus];
+    [returnObj setValue:[characteristic.UUID representativeString] forKey:keyCharacteristicUuid];
+
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnObj];
+    [pluginResult setKeepCallbackAsBool:true];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:operationCallback];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForDescriptor:(CBDescriptor *)descriptor error:(NSError *)error
@@ -1654,5 +1641,4 @@ NSString *const logWriteDescriptorValueNotFound = @"Write descriptor value not f
 -(void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary *)dict{
     
 }
-
 @end
